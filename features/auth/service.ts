@@ -68,7 +68,13 @@ export const signup = async (formData: SignupFormData) => {
     };
 };
 
-export const login = async (formData: SignupFormData) => {
+
+
+interface LoginFormData {
+    email: string;
+    password: string;
+}
+export const login = async (formData: LoginFormData) => {
     const { email, password } = formData;
 
     // Validate required fields
