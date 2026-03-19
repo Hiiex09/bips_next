@@ -1,7 +1,8 @@
 
 import bcrypt from "bcryptjs";
-import { Role } from "@prisma/client";
+
 import { prisma } from "@/lib/db";
+import { Role } from "@/app/generated/prisma/client";
 
 interface SignupFormData {
     firstName: string;
