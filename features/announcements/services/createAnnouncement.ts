@@ -6,13 +6,13 @@ import {
 } from "@/app/generated/prisma/client";
 
 interface AnnouncementData {
+    userId: number
     title: string;
     content: string;
     category: string;
     priority: string;
     status?: string;
     expiresAt?: string;
-    userId: number;
     fullName: string;
 }
 
@@ -33,7 +33,7 @@ export const postAnnouncement = async (data: AnnouncementData) => {
         userId,
     } = data;
 
-    // ✅ validation
+    // validation
     if (!title || !content || !category || !priority) {
         throw new Error(
             "Title, content, category, and priority are required"
@@ -45,7 +45,7 @@ export const postAnnouncement = async (data: AnnouncementData) => {
             title,
             content,
 
-            // ✅ enum conversion
+            //  enum conversion
             category: formatEnum(category) as AnnouncementCategory,
             priority: formatEnum(priority) as AnnouncementPriority,
 
@@ -73,7 +73,7 @@ export const postAnnouncement = async (data: AnnouncementData) => {
             status: announcement.status,
             expiresAt: announcement.expiresAt,
 
-            // ✅ computed author name
+            // computed author name
             authorName: `${announcement.author.firstName} ${announcement.author.lastName}`,
         },
     };
