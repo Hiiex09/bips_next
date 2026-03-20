@@ -38,28 +38,9 @@ export async function POST(req: Request) {
         // 5. Parse request body
         const body = await req.json();
 
-        // 6. Create announcement
-        const result = await prisma.announcement.create({
-            data: {
-                title: body.title,
-                content: body.content,
-                category: body.category,
-                priority: body.priority,
-                status: body.status,
-                expiresAt: new Date(body.expiresAt), // IMPORTANT FIX
-
-                author: {
-                    connect: { id: userId },
-                },
-            },
-            include: {
-                author: {
-                    select: {
-                        role: true,
-                        status: true,
-                    },
-                },
-            },
+        const result = await postAnnouncement({
+            ...body,
+            userId,
         });
 
         return Response.json(result, { status: 201 });
@@ -109,8 +90,4 @@ export async function GET() {
             { status: 500 }
         );
     }
-}
-
-function decodeToken(token: string | undefined) {
-    throw new Error("Function not implemented.");
 }
