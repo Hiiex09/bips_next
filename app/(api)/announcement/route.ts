@@ -1,7 +1,6 @@
-import { postAnnouncement } from "@/features/announcements/services/createAnnouncement";
+
 import { prisma } from "@/lib/db";
-import { headers } from "next/headers";
-import jwt from "jsonwebtoken";
+import { createAnnouncementAction } from "@/features/announcements/actions/createAnnouncement.action";
 
 interface DecodedUser {
     id: number;
@@ -10,43 +9,19 @@ interface DecodedUser {
 
 export async function POST(req: Request) {
     try {
-        const authHeader = (await headers()).get("authorization");
-
-        if (!authHeader) {
-            return Response.json(
-                { message: "Unauthorized" },
-                { status: 401 }
-            );
-        }
-
-        const token = authHeader.split(" ")[1];
-
-        const decoded: any = jwt.verify(
-            token,
-            process.env.NEXT_JWT_SECRET_ACCESS_TOKEN!
-        );
-
-        const userId = decoded.id || decoded.user_id;
-
-        if (!userId) {
-            return Response.json(
-                { message: "Invalid token - missing user id" },
-                { status: 401 }
-            );
-        }
-
-        // 5. Parse request body
         const body = await req.json();
 
-        const result = await postAnnouncement({
-            ...body,
-            userId,
-        });
+        const result = await createAnnouncementAction(body);
+
+        if (!result.success) {
+            const status = result.error?.includes("Unauthorized") ? 401 : 400;
+            return Response.json(result, { status });
+        }
 
         return Response.json(result, { status: 201 });
     } catch (error: any) {
         return Response.json(
-            { message: error.message || "Internal Server Error" },
+            { success: false, message: error.message || "Internal Server Error" },
             { status: 500 }
         );
     }
