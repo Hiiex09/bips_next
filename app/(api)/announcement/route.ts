@@ -1,4 +1,4 @@
-import { postAnnouncement } from "@/features/annoucements/services/createAnnouncement";
+import { postAnnouncement } from "@/features/announcements/services/createAnnouncement";
 import { prisma } from "@/lib/db";
 import { headers } from "next/headers";
 import jwt from "jsonwebtoken";
