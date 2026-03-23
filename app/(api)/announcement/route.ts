@@ -1,5 +1,5 @@
 
-import { prisma } from "@/lib/db";
+
 import { createAnnouncementAction } from "@/features/announcement/actions/createAnnouncement.action";
 import { getAnnouncements } from "@/features/announcement/actions/getAnnouncements.action";
 
