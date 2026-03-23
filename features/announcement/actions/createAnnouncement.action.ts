@@ -2,8 +2,9 @@
 
 import jwt from 'jsonwebtoken';
 import { headers } from "next/headers";
-import { postAnnouncement } from "../services/createAnnouncement";
-import { announcementSchema } from "../validations/announcement.schema";
+import { postAnnouncement } from "../services/createAnnouncement.service";
+import { announcementSchema } from "../validation/announcement.schema";
+
 
 export const createAnnouncementAction = async (data: any) => {
     try {
@@ -31,6 +32,7 @@ export const createAnnouncementAction = async (data: any) => {
             : data;
 
         // 3. Validation
+
         const validatedData = announcementSchema.parse(rawData);
 
         // 4. Call Service
