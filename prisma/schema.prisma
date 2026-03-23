@@ -36,6 +36,9 @@ model User {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   announcements Announcement[]
+
+  certificateRequests CertificateRequest[] @relation("ResidentRequests")
+  processedRequests   CertificateRequest[] @relation("ProcessedRequests")
 }
 
 enum Role {
@@ -87,4 +90,39 @@ enum AnnouncementPriority {
 enum AnnouncementStatus {
   DRAFT
   PUBLISHED
+}
+
+enum CertificateType {
+  BARANGAY_CLEARANCE
+  BARANGAY_INDIGENCY
+  BARANGAY_RESIDENCY
+}
+
+enum CertificateStatus {
+  PENDING
+  APPROVED
+  READY_FOR_PICKUP
+}
+
+model CertificateRequest {
+  id String @id @default(cuid())
+
+  residentId Int
+  resident   User @relation("ResidentRequests", fields: [residentId], references: [id])
+
+  certificateType CertificateType
+  purpose         String
+  status          CertificateStatus @default(PENDING)
+
+  dateRequested DateTime  @default(now())
+  dateApproved  DateTime?
+
+  processedById Int?
+  processedBy   User? @relation("ProcessedRequests", fields: [processedById], references: [id])
+
+  remarks       String?
+  contactNumber String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
