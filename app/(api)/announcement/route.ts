@@ -1,6 +1,8 @@
 
 import { prisma } from "@/lib/db";
-import { createAnnouncementAction } from "@/features/announcements/actions/createAnnouncement.action";
+import { createAnnouncementAction } from "@/features/announcement/actions/createAnnouncement.action";
+import { getAnnouncements } from "@/features/announcement/actions/getAnnouncements.action";
+
 
 interface DecodedUser {
     id: number;
@@ -28,41 +30,28 @@ export async function POST(req: Request) {
 }
 
 
+
+
 export async function GET() {
-    try {
-        const announcements = await prisma.announcement.findMany({
-            orderBy: {
-                createdAt: "desc",
-            },
-            include: {
-                author: true,
-            },
-        });
+    const result = await getAnnouncements();
 
-        const formatted = announcements.map((a) => ({
-            id: a.id,
-            title: a.title,
-            content: a.content,
-            category: a.category,
-            priority: a.priority,
-            status: a.status,
-            expiresAt: a.expiresAt,
-            createdAt: a.createdAt,
-
-            // ✅ computed author name
-            authorName: a.author
-                ? `${a.author.firstName} ${a.author.lastName}`
-                : "Unknown",
-        }));
-
-        return Response.json({
-            message: "Announcements fetched successfully",
-            announcements: formatted,
-        });
-    } catch (error: any) {
+    if (!result.success || !result.data) {
         return Response.json(
-            { message: error.message || "Internal Server Error" },
+            { message: result.error || "Internal Server Error" },
             { status: 500 }
         );
     }
+
+    // Format matches the previous API response expectations
+    const formatted = result.data.map((a: any) => ({
+        ...a,
+        authorName: a.author
+            ? `${a.author.firstName} ${a.author.lastName}`
+            : "Unknown",
+    }));
+
+    return Response.json({
+        message: "Announcements fetched successfully",
+        announcements: formatted,
+    });
 }
