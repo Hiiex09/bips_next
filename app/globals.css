@@ -77,13 +77,52 @@
   --radius-full: 0.75rem;
 }
 
-/* Ensure DaisyUI uses these specific values for light theme */
+/* Light theme */
 :root {
   --color-primary: #002576;
+  --color-primary-content: #ffffff;
   --color-secondary: #bb001e;
+  --color-secondary-content: #ffffff;
   --color-accent: #715c00;
+  --color-accent-content: #ffffff;
   --color-neutral: #171c22;
+  --color-neutral-content: #f8f9ff;
   --color-base-100: #ffffff;
   --color-base-200: #f0f4fd;
   --color-base-300: #eaeef7;
+  --color-base-content: #171c22;
+  --color-info: #3056c4;
+  --color-success: #008000;
+  --color-warning: #cca800;
+  --color-error: #ba1a1a;
+  --color-error-content: #ffffff;
+  --color-on-background: #171c22;
+  --color-background: #f8f9ff;
 }
+
+/* Dark theme */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #002576;
+    --color-primary-content: #edf1fa;
+    --color-secondary: #ffb3ae;
+    --color-secondary-content: #910013;
+    --color-accent: #ecc300;
+    --color-accent-content: #3e2e00;
+    --color-neutral: #edf1fa;
+    --color-neutral-content: #171c22;
+    --color-base-100: #0f1419;
+    --color-base-200: #1a1f26;
+    --color-base-300: #252b34;
+    --color-base-content: #edf1fa;
+    --color-info: #9ec4ff;
+    --color-success: #66ff00;
+    --color-warning: #ffd662;
+    --color-error: #ffb4ac;
+    --color-error-content: #601410;
+    --color-on-background: #edf1fa;
+    --color-background: #0f1419;
+  }
+}
+
+  
