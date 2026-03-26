@@ -1,6 +1,6 @@
+import Navbar from "@/pages/Navbar";
 import type { Metadata } from "next";
-import { Inter, Public_Sans } from "next/font/google";
-import "./globals.css";
+import { Geist, Geist_Mono, Inter, Public_Sans } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
 const publicSans = Public_Sans({ subsets: ["latin"] });
@@ -15,13 +15,5 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body
-        className={`${inter.className} ${publicSans.className} antialiased flex flex-col min-h-screen`}
-      >
-        <main className="grow">{children}</main>
-      </body>
-    </html>
-  );
+  return <div>{children}</div>;
 }
