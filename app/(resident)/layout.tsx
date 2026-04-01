@@ -1,13 +1,13 @@
-import React from 'react'
+﻿"use client";
 
-const ResidentLayout = ({
-    children,
-}: {
-    children: React.ReactNode;
-}) => {
-    return (
-        <div>{children}</div>
-    )
-}
+import React from "react";
 
-export default ResidentLayout
+const ResidentLayout = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className="min-h-screen bg-base-200">
+      <main>{children}</main>
+    </div>
+  );
+};
+
+export default ResidentLayout;
