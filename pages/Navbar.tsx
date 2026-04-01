@@ -1,6 +1,48 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { LogOut } from "lucide-react";
 
 const Navbar = () => {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch("/auth/checkAuth");
+        const data = await res.json();
+        setIsAuthenticated(data.authenticated || false);
+      } catch (error) {
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      const res = await fetch("/auth/logout", {
+        method: "POST",
+      });
+
+      if (res.ok) {
+        setIsAuthenticated(false);
+        router.push("/");
+      } else {
+        console.error("Logout failed");
+      }
+    } catch (error) {
+      console.error("Error during logout:", error);
+    }
+  };
+
   return (
     <div className="navbar bg-base-100 shadow-sm">
       <div className="navbar-start">
@@ -79,9 +121,20 @@ const Navbar = () => {
         </ul>
       </div>
       <div className="navbar-end">
-        <Link className="btn" href={"/login"}>
-          Login
-        </Link>
+        {!loading &&
+          (isAuthenticated ? (
+            <button
+              onClick={handleLogout}
+              className="btn btn-outline btn-error flex items-center gap-2"
+            >
+              <LogOut size={16} />
+              Logout
+            </button>
+          ) : (
+            <Link className="btn" href={"/login"}>
+              Login
+            </Link>
+          ))}
       </div>
     </div>
   );
