@@ -1,18 +1,21 @@
 import { login } from "@/features/auth/service";
 import { generateToken } from "@/lib/utils";
+import { loginSchema } from "@/features/auth/validation";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { email, password } = body;
 
-        if (!email || !password) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        const validationResult = loginSchema.safeParse(body);
+        if (!validationResult.success) {
+            return NextResponse.json({ error: validationResult.error.issues.map(err => err.message).join(', ') }, { status: 400 });
         }
 
+        const { email, password } = validationResult.data;
+
         // Login user (login function should return full user with password)
-        const user = await login(body);
+        const user = await login({ email, password });
 
         if (!user) {
             return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
