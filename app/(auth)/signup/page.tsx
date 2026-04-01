@@ -1,11 +1,57 @@
 "use client";
 
 import Link from "next/link";
-import { Eye, EyeClosed } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Eye, EyeClosed, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
+  
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [password, setPassword] = useState("");
+  const [address, setAddress] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ 
+          firstName, 
+          lastName, 
+          email, 
+          mobile, 
+          password, 
+          address 
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || data.message || "Failed to register");
+      }
+
+      // The API automatically sets the auth cookies. Route to home directory.
+      router.push("/");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="flex min-h-screen flex-col lg:flex-row">
@@ -58,33 +104,63 @@ export default function RegisterPage() {
               </p>
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="alert alert-error p-3 text-sm flex gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>{error}</span>
+              </div>
+            )}
+
             {/* Form */}
-            <form className="space-y-4">
-              {/* Full Name */}
-              <input
-                type="text"
-                placeholder="Full Name"
-                className="input input-bordered w-full"
-              />
+            <form className="space-y-4" onSubmit={handleSignup}>
+              {/* Name */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input
+                  type="text"
+                  placeholder="First Name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="input input-bordered w-full"
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Last Name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="input input-bordered w-full"
+                  required
+                />
+              </div>
 
               {/* Email + Mobile */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <input
                   type="email"
                   placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="input input-bordered w-full"
+                  required
                 />
                 <input
                   type="tel"
                   placeholder="Mobile"
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value)}
                   className="input input-bordered w-full"
+                  required
                 />
               </div>
 
               {/* Address */}
               <textarea
                 placeholder="Home Address"
-                className="textarea textarea-bordered w-full"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="textarea textarea-bordered w-full resize-none h-20"
+                required
               />
 
               {/* Password */}
@@ -92,7 +168,11 @@ export default function RegisterPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   className="input input-bordered w-full pr-10"
+                  required
+                  minLength={8}
                 />
 
                 <button
@@ -104,17 +184,19 @@ export default function RegisterPage() {
                 </button>
               </div>
 
-              {/* File Upload */}
-              <input
+              {/* File Upload (ID) */}
+              {/* <input
                 type="file"
                 className="file-input file-input-bordered w-full"
-              />
+                onChange={(e) => setFile(e.target.files?.[0])}
+              /> */}
 
               {/* Terms */}
               <label className="flex items-start gap-2 text-xs cursor-pointer">
                 <input
                   type="checkbox"
                   className="checkbox checkbox-primary mt-1"
+                  required
                 />
                 <span>
                   I agree to <span className="text-primary">Terms</span> and{" "}
@@ -123,8 +205,12 @@ export default function RegisterPage() {
               </label>
 
               {/* Button */}
-              <button className="btn btn-primary w-full">
-                Complete Registration
+              <button 
+                type="submit" 
+                className="btn btn-primary w-full"
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="animate-spin" size={20} /> : "Complete Registration"}
               </button>
             </form>
 

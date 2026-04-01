@@ -1,11 +1,50 @@
 "use client";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-import { Eye, EyeClosed } from "lucide-react";
+import { Eye, EyeClosed, Loader2 } from "lucide-react";
 import { useState } from "react";
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      console.log(data);
+
+      if (!res.ok) {
+        throw new Error(data.error || data.message || "Failed to login");
+      }
+
+      // Redirect based on role
+      if (data.user?.role === "ADMIN" || data.user?.role === "STAFF") {
+        router.push("/dashboard");
+      } else {
+        router.push("/");
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <main className="flex min-h-screen flex-col lg:flex-row">
@@ -52,17 +91,28 @@ const LoginPage = () => {
               Enter your credentials to access the portal
             </p>
 
+            {/* Error Message */}
+            {error && (
+              <div className="alert alert-error mt-4 p-3 text-sm flex gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-5 w-5" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span>{error}</span>
+              </div>
+            )}
+
             {/* Form */}
-            <form className="space-y-4 mt-4">
+            <form className="space-y-4 mt-4" onSubmit={handleLogin}>
               {/* Email */}
               <div>
                 <label className="label">
-                  <span className="label-text">Email or Mobile</span>
+                  <span className="label-text">Email</span>
                 </label>
                 <input
-                  type="text"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="juan.delacruz@example.com"
                   className="input input-bordered w-full"
+                  required
                 />
               </div>
 
@@ -75,8 +125,11 @@ const LoginPage = () => {
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
                     className="input input-bordered w-full pr-10"
+                    required
                   />
 
                   <button
@@ -89,20 +142,13 @@ const LoginPage = () => {
                 </div>
               </div>
 
-              {/* Remember
-              <div className="form-control">
-                <label className="cursor-pointer flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    className="checkbox checkbox-primary"
-                  />
-                  <span className="label-text">Remember me</span>
-                </label>
-              </div> */}
-
               {/* Button */}
-              <button className="btn btn-primary w-full">
-                Login to Account
+              <button
+                type="submit"
+                className="btn btn-primary w-full"
+                disabled={loading}
+              >
+                {loading ? <Loader2 className="animate-spin" size={20} /> : "Login to Account"}
               </button>
 
               {/* Footer */}

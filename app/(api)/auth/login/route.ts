@@ -22,11 +22,12 @@ export async function POST(req: NextRequest) {
         const { access_token, refresh_token } = generateToken(user.id);
 
 
-        const { password: _, firstName, lastName } = user;
+        const { password: _, firstName, lastName, role } = user;
 
         const userForClient = {
             email,
             fullName: `${firstName} ${lastName}`,
+            role,
         };
 
         const res = NextResponse.json({
