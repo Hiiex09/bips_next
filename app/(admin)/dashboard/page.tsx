@@ -1,3 +1,5 @@
+"use client";
+
 import AdminNavbar from "@/components/AdminNavbar";
 import {
   CircleAlert,
@@ -6,8 +8,106 @@ import {
   TriangleAlert,
   Users,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const DashboardAdminPage = () => {
+  const [totalResidents, setTotalResidents] = useState(0);
+  const [pendingRequests, setPendingRequests] = useState(0);
+  const [activeIncidents, setActiveIncidents] = useState(0);
+  const [recentRequests, setRecentRequests] = useState<any[]>([]);
+  const [recentAnnouncements, setRecentAnnouncements] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchTotalResidents = async () => {
+      try {
+        const response = await fetch("/residents");
+        const data = await response.json();
+        setTotalResidents(data.total);
+      } catch (error) {
+        console.error("Failed to fetch total residents:", error);
+      }
+    };
+
+    const fetchPendingRequests = async () => {
+      try {
+        const response = await fetch("/certificate-request/pending");
+        const data = await response.json();
+        setPendingRequests(data.total ?? 0);
+      } catch (error) {
+        console.error("Failed to fetch pending requests:", error);
+      }
+    };
+
+    const fetchActiveIncidents = async () => {
+      try {
+        const response = await fetch("/incident/active");
+        const data = await response.json();
+        setActiveIncidents(data.total ?? 0);
+      } catch (error) {
+        console.error("Failed to fetch active incidents:", error);
+      }
+    };
+
+    const fetchRecentRequests = async () => {
+      try {
+        const response = await fetch("/certificate-request/recent");
+        const data = await response.json();
+        setRecentRequests(data.certificateRequests ?? []);
+      } catch (error) {
+        console.error("Failed to fetch recent requests:", error);
+      }
+    };
+
+    const fetchRecentAnnouncements = async () => {
+      try {
+        const response = await fetch("/announcement");
+        const data = await response.json();
+        setRecentAnnouncements(data.announcements?.slice(0, 2) ?? []);
+      } catch (error) {
+        console.error("Failed to fetch recent announcements:", error);
+      }
+    };
+
+    fetchTotalResidents();
+    fetchPendingRequests();
+    fetchActiveIncidents();
+    fetchRecentRequests();
+    fetchRecentAnnouncements();
+  }, []);
+
+  const formatStatusBadge = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return "badge badge-warning";
+      case "APPROVED":
+        return "badge badge-success";
+      case "READY_FOR_PICKUP":
+        return "badge badge-info";
+      default:
+        return "badge badge-neutral";
+    }
+  };
+
+  const formatCertificateType = (type: string) => {
+    switch (type) {
+      case "BARANGAY_CLEARANCE":
+        return "Barangay Clearance";
+      case "BARANGAY_INDIGENCY":
+        return "Certificate of Indigency";
+      case "BARANGAY_RESIDENCY":
+        return "Residency Certificate";
+      default:
+        return type.replaceAll("_", " ");
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
   return (
     <main className="flex-1 flex flex-col overflow-hidden">
       <AdminNavbar />
@@ -20,7 +120,7 @@ const DashboardAdminPage = () => {
                 <Users size={20} color="blue" />
               </span>
               <p className="text-sm opacity-60">Total Residents</p>
-              <h2 className="text-3xl font-bold">12,450</h2>
+              <h2 className="text-3xl font-bold">{totalResidents}</h2>
             </div>
           </div>
 
@@ -30,7 +130,7 @@ const DashboardAdminPage = () => {
                 <ClipboardClock size={20} color="orange" />
               </span>
               <p className="text-sm opacity-60">Pending Requests</p>
-              <h2 className="text-3xl font-bold">42</h2>
+              <h2 className="text-3xl font-bold">{pendingRequests}</h2>
             </div>
           </div>
 
@@ -40,7 +140,7 @@ const DashboardAdminPage = () => {
                 <TriangleAlert size={20} color="red" />
               </span>
               <p className="text-sm opacity-60">Active Incidents</p>
-              <h2 className="text-3xl font-bold">08</h2>
+              <h2 className="text-3xl font-bold">{activeIncidents}</h2>
             </div>
           </div>
         </div>
@@ -68,63 +168,36 @@ const DashboardAdminPage = () => {
                 </thead>
 
                 <tbody>
-                  <tr>
-                    <td>Juan Dela Cruz</td>
-                    <td>Barangay Clearance</td>
-                    <td>Oct 24, 2023</td>
-                    <td>
-                      <span className="badge badge-warning">Pending</span>
-                    </td>
-                    <td className="space-x-2">
-                      <button className="btn btn-primary btn-xs">
-                        Approve
-                      </button>
-                      <button className="btn btn-outline btn-xs">Reject</button>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td>Maria Santos</td>
-                    <td>Certificate of Indigency</td>
-                    <td>Oct 23, 2023</td>
-                    <td>
-                      <span className="badge badge-warning">Pending</span>
-                    </td>
-                    <td className="space-x-2">
-                      <button className="btn btn-primary btn-xs">
-                        Approve
-                      </button>
-                      <button className="btn btn-outline btn-xs">Reject</button>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td>Jose Rizal</td>
-                    <td>Business Permit</td>
-                    <td>Oct 23, 2023</td>
-                    <td>
-                      <span className="badge badge-success">Approved</span>
-                    </td>
-                    <td>
-                      <button className="btn btn-ghost btn-xs">
-                        View Details <SquareArrowOutUpRight size={15} />
-                      </button>
-                    </td>
-                  </tr>
-
-                  <tr>
-                    <td>Elena Adarna</td>
-                    <td>Residency Certificate</td>
-                    <td>Oct 22, 2023</td>
-                    <td>
-                      <span className="badge badge-error">Rejected</span>
-                    </td>
-                    <td>
-                      <button className="btn btn-ghost btn-xs">
-                        View Reason <CircleAlert size={15} />
-                      </button>
-                    </td>
-                  </tr>
+                  {recentRequests.length > 0 ? (
+                    recentRequests.map((request) => (
+                      <tr key={request.id}>
+                        <td>{request.residentName}</td>
+                        <td>
+                          {formatCertificateType(request.certificateType)}
+                        </td>
+                        <td>{formatDate(request.dateRequested)}</td>
+                        <td>
+                          <span className={formatStatusBadge(request.status)}>
+                            {request.status.replaceAll("_", " ")}
+                          </span>
+                        </td>
+                        <td>
+                          <button className="btn btn-ghost btn-xs">
+                            View Details <SquareArrowOutUpRight size={15} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan={5}
+                        className="text-center py-6 text-sm opacity-70"
+                      >
+                        No recent document requests found.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -142,17 +215,28 @@ const DashboardAdminPage = () => {
               </div>
 
               <div className="space-y-3 mt-4">
-                <div className="bg-base-200 p-3 rounded-lg">
-                  <p className="text-xs text-primary font-bold">HEALTH</p>
-                  <h4 className="font-bold text-sm">Vaccination Drive</h4>
-                  <p className="text-xs opacity-60">Oct 30, Barangay Hall</p>
-                </div>
-
-                <div className="bg-base-200 p-3 rounded-lg">
-                  <p className="text-xs text-primary font-bold">COMMUNITY</p>
-                  <h4 className="font-bold text-sm">Clean-up Drive</h4>
-                  <p className="text-xs opacity-60">Zone 4 residents</p>
-                </div>
+                {recentAnnouncements.length > 0 ? (
+                  recentAnnouncements.map((announcement) => (
+                    <div
+                      key={announcement.id}
+                      className="bg-base-200 p-3 rounded-lg"
+                    >
+                      <p className="text-xs text-primary font-bold">
+                        {announcement.category}
+                      </p>
+                      <h4 className="font-bold text-sm">
+                        {announcement.title}
+                      </h4>
+                      <p className="text-xs opacity-60">
+                        {announcement.authorName || "Unknown Author"}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <div className="bg-base-200 p-3 rounded-lg text-center text-sm opacity-70">
+                    No recent announcements available.
+                  </div>
+                )}
               </div>
             </div>
           </div>
