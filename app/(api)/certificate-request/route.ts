@@ -21,18 +21,19 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
-  const result = await getCertificateRequestsAction();
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+  const params = Object.fromEntries(url.searchParams.entries());
+
+  const result = await getCertificateRequestsAction(params);
 
   if (!result.success || !result.data) {
+    const status = result.error?.includes("Unauthorized") ? 401 : 500;
     return Response.json(
       { message: result.error || "Internal Server Error" },
-      { status: 500 }
+      { status }
     );
   }
 
-  return Response.json({
-    message: "Certificate requests fetched successfully",
-    certificateRequests: result.data,
-  });
+  return Response.json(result.data, { status: 200 });
 }
