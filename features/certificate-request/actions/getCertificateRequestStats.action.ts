@@ -2,9 +2,9 @@
 
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
-import { getCertificateRequestsService } from "../services/getCertificateRequests.service";
+import { getCertificateRequestStatsService } from "../services/getCertificateRequestStats.service";
 
-export const getCertificateRequestsAction = async (params: any = {}) => {
+export const getCertificateRequestStatsAction = async () => {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("access_token")?.value;
@@ -15,14 +15,14 @@ export const getCertificateRequestsAction = async (params: any = {}) => {
 
     jwt.verify(token, process.env.NEXT_JWT_SECRET_ACCESS_TOKEN!);
 
-    const result = await getCertificateRequestsService(params);
+    const stats = await getCertificateRequestStatsService();
 
     return {
       success: true,
-      data: result,
+      data: stats,
     };
   } catch (error: any) {
-    console.error("Action Error:", error);
+    console.error("Stats Action Error:", error);
 
     return {
       success: false,

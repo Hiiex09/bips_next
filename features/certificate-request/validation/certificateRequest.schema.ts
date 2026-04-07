@@ -13,7 +13,7 @@ export const certificateRequestSchema = z.object({
 export type CertificateRequestFormData = z.infer<typeof certificateRequestSchema>;
 
 export const certificateRequestUpdateSchema = z.object({
-  status: z.enum(["PENDING", "APPROVED", "READY_FOR_PICKUP"]),
+  status: z.enum(["PENDING", "APPROVED", "READY_FOR_PICKUP", "REJECTED"]),
   remarks: z.string().optional(),
 });
 
