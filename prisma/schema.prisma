@@ -102,6 +102,12 @@ enum CertificateStatus {
   PENDING
   APPROVED
   READY_FOR_PICKUP
+  REJECTED
+}
+
+enum Urgency {
+  NORMAL
+  URGENT
 }
 
 model CertificateRequest {
@@ -113,6 +119,7 @@ model CertificateRequest {
   certificateType CertificateType
   purpose         String
   status          CertificateStatus @default(PENDING)
+  urgency         Urgency           @default(NORMAL)
 
   dateRequested DateTime  @default(now())
   dateApproved  DateTime?
