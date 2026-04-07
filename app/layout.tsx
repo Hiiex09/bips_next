@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Public_Sans } from "next/font/google";
 import { Toaster } from "react-hot-toast";
+import { Providers } from "@/components/Providers";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -21,8 +22,10 @@ export default function RootLayout({
       <body
         className={`${inter.className} ${publicSans.className} antialiased flex flex-col min-h-screen`}
       >
-        <Toaster position="top-right" />
-        <main className="grow">{children}</main>
+        <Providers>
+          <Toaster position="top-right" />
+          <main className="grow">{children}</main>
+        </Providers>
       </body>
     </html>
   );
