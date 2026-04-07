@@ -129,7 +129,7 @@ const Sidebar = () => {
             </Link>
           </li>
           <li>
-            <Link href={"/users"}>User Management</Link>
+            <Link href={"/users-page"}>User Management</Link>
           </li>
           <li>
             <Link href={"/request"}>Document Requests</Link>
