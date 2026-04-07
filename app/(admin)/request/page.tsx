@@ -1,4 +1,123 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import { Bell, Settings, Check, X, Filter } from "lucide-react";
+import {
+  useFetchRequests,
+  useFetchRequestStats,
+  useUpdateRequestStatus,
+} from "@/features/certificate-request/actions/certificate-request.hooks";
+
 const RequestPage = () => {
+  const [activeTab, setActiveTab] = useState("pending");
+  const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    type: "all",
+    dateFrom: "",
+    dateTo: "",
+  });
+
+  const limit = 10;
+
+  const params = useMemo(() => {
+    const baseParams: any = {
+      page: currentPage,
+      limit,
+      search: search || undefined,
+    };
+
+    if (activeTab === "urgent") {
+      baseParams.urgency = "urgent";
+    } else if (activeTab !== "all") {
+      baseParams.status = activeTab;
+    }
+
+    if (filters.type !== "all") baseParams.type = filters.type;
+    if (filters.dateFrom) baseParams.dateFrom = filters.dateFrom;
+    if (filters.dateTo) baseParams.dateTo = filters.dateTo;
+
+    return baseParams;
+  }, [currentPage, search, activeTab, filters]);
+
+  const { data: requestsData, isLoading: requestsLoading } =
+    useFetchRequests(params);
+  const { data: statsData, isLoading: statsLoading } = useFetchRequestStats();
+  const updateStatusMutation = useUpdateRequestStatus();
+
+  const requests = requestsData?.requests || [];
+  const pagination = requestsData?.pagination || { total: 0, totalPages: 0 };
+
+  const handleStatusUpdate = (requestId: string, status: string) => {
+    // Assuming processedById is available, for now use null
+    updateStatusMutation.mutate({ id: requestId, status });
+  };
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return <span className="badge badge-warning">Pending</span>;
+      case "APPROVED":
+        return <span className="badge badge-success">Approved</span>;
+      case "READY_FOR_PICKUP":
+        return <span className="badge badge-info">Ready for Pickup</span>;
+      case "REJECTED":
+        return <span className="badge badge-error">Rejected</span>;
+      default:
+        return <span className="badge">Unknown</span>;
+    }
+  };
+
+  const getUrgencyBadge = (urgency: string) => {
+    if (urgency === "URGENT") {
+      return <span className="badge badge-error badge-sm">Urgent</span>;
+    }
+    return <span className="badge badge-neutral badge-sm">Normal</span>;
+  };
+
+  const getTypeBadge = (type: string) => {
+    const colors = {
+      BARANGAY_CLEARANCE: "badge-info",
+      BARANGAY_INDIGENCY: "badge-secondary",
+      BARANGAY_RESIDENCY: "badge-accent",
+    };
+    const displayName = type
+      .replace(/_/g, " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (l) => l.toUpperCase());
+    return (
+      <span
+        className={`badge ${colors[type as keyof typeof colors] || ""} badge-outline`}
+      >
+        {displayName}
+      </span>
+    );
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return {
+      date: date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }),
+      time: date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    };
+  };
+
+  const tabs = [
+    { id: "all", label: "All", count: null },
+    { id: "pending", label: "Pending", count: statsData?.totalPending || 0 },
+    { id: "approved", label: "Approved" },
+    { id: "rejected", label: "Rejected" },
+    { id: "urgent", label: "Urgent", count: statsData?.urgentRequests || 0 },
+  ];
+
   return (
     <main className="flex-1 flex flex-col min-w-0">
       {/* HEADER */}
@@ -12,12 +131,12 @@ const RequestPage = () => {
 
         <div className="flex items-center gap-2">
           <button className="btn btn-ghost btn-circle relative">
-            <span className="material-icons">notifications</span>
+            <Bell size={20} />
             <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
           </button>
 
           <button className="btn btn-ghost btn-circle">
-            <span className="material-icons">settings</span>
+            <Settings size={20} />
           </button>
         </div>
       </header>
@@ -28,7 +147,13 @@ const RequestPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="stat bg-base-100 border rounded-xl shadow-sm">
             <div className="stat-title">Total Pending</div>
-            <div className="stat-value">24</div>
+            <div className="stat-value">
+              {statsLoading ? (
+                <div className="loading loading-spinner loading-sm"></div>
+              ) : (
+                statsData?.totalPending || 0
+              )}
+            </div>
           </div>
 
           <div className="stat bg-base-100 border rounded-xl shadow-sm">
@@ -36,12 +161,24 @@ const RequestPage = () => {
               Urgent Requests
               <span className="w-2 h-2 bg-error rounded-full animate-pulse"></span>
             </div>
-            <div className="stat-value text-error">08</div>
+            <div className="stat-value text-error">
+              {statsLoading ? (
+                <div className="loading loading-spinner loading-sm"></div>
+              ) : (
+                statsData?.urgentRequests || 0
+              )}
+            </div>
           </div>
 
           <div className="stat bg-base-100 border rounded-xl shadow-sm">
             <div className="stat-title">Completed (Today)</div>
-            <div className="stat-value text-success">12</div>
+            <div className="stat-value text-success">
+              {statsLoading ? (
+                <div className="loading loading-spinner loading-sm"></div>
+              ) : (
+                statsData?.completedToday || 0
+              )}
+            </div>
           </div>
         </div>
 
@@ -51,13 +188,23 @@ const RequestPage = () => {
           <div className="p-6 border-b flex flex-col md:flex-row justify-between gap-4">
             {/* TABS */}
             <div className="tabs tabs-boxed">
-              <a className="tab tab-active">Pending</a>
-              <a className="tab">Approved</a>
-              <a className="tab">Rejected</a>
-              <a className="tab">
-                Urgent
-                <span className="badge badge-error badge-sm ml-2">8</span>
-              </a>
+              {tabs.map((tab) => (
+                <a
+                  key={tab.id}
+                  className={`tab ${activeTab === tab.id ? "tab-active" : ""}`}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setCurrentPage(1);
+                  }}
+                >
+                  {tab.label}
+                  {tab.count !== undefined && tab.count !== null && (
+                    <span className="badge badge-sm ml-2 badge-neutral">
+                      {tab.count}
+                    </span>
+                  )}
+                </a>
+              ))}
             </div>
 
             {/* SEARCH + FILTER */}
@@ -66,14 +213,57 @@ const RequestPage = () => {
                 type="text"
                 placeholder="Search resident..."
                 className="input input-bordered input-sm w-64"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
 
-              <button className="btn btn-outline btn-sm">
-                <span className="material-icons text-sm">filter_list</span>
+              <button
+                className="btn btn-outline btn-sm"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter size={16} />
                 Filters
               </button>
             </div>
           </div>
+
+          {/* FILTERS PANEL */}
+          {showFilters && (
+            <div className="p-6 border-b bg-base-200">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <select
+                  className="select select-bordered select-sm"
+                  value={filters.type}
+                  onChange={(e) =>
+                    setFilters({ ...filters, type: e.target.value })
+                  }
+                >
+                  <option value="all">All Types</option>
+                  <option value="barangay_clearance">Barangay Clearance</option>
+                  <option value="barangay_indigency">Barangay Indigency</option>
+                  <option value="barangay_residency">Barangay Residency</option>
+                </select>
+
+                <input
+                  type="date"
+                  className="input input-bordered input-sm"
+                  value={filters.dateFrom}
+                  onChange={(e) =>
+                    setFilters({ ...filters, dateFrom: e.target.value })
+                  }
+                />
+
+                <input
+                  type="date"
+                  className="input input-bordered input-sm"
+                  value={filters.dateTo}
+                  onChange={(e) =>
+                    setFilters({ ...filters, dateTo: e.target.value })
+                  }
+                />
+              </div>
+            </div>
+          )}
 
           {/* TABLE */}
           <div className="overflow-x-auto">
@@ -84,110 +274,139 @@ const RequestPage = () => {
                   <th>Document</th>
                   <th>Date</th>
                   <th>Urgency</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
 
               <tbody>
-                {/* ROW */}
-                <tr>
-                  <td>
-                    <div className="flex items-center gap-3">
-                      <div className="avatar">
-                        <div className="w-9 rounded-full">
-                          <img src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1HM5jqczr7WM8A3lnl_PSS5H1oSfF_3ZIzlIZtVlZ1x0KUaze-zFSJOXAovkvu8P5UvZxSKAT7BhMQAAWBZCb7v8OmEouLTyWrqjLINLDtScpHP68jSDBncB6LzowKbrMiH95gki-ascfEZpWi9EEBupOUGKdxdQ1hjY1p46BgO85N03BzonnuNJckMrI1SadW8O_r4qjoKZxkNqGrYs4-F4Vkxu3qKvYqIyYIC3iPw9uNhj5fVhm5NGCgUZXXx3-Jvp7W4jJc14" />
-                        </div>
-                      </div>
-                      <div>
-                        <div className="font-semibold">Ricardo Dalisay</div>
-                        <div className="text-xs opacity-60">Purok 4</div>
-                      </div>
-                    </div>
-                  </td>
+                {requestsLoading ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-8">
+                      <div className="loading loading-spinner loading-lg"></div>
+                    </td>
+                  </tr>
+                ) : requests.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-8 text-gray-500">
+                      No requests found
+                    </td>
+                  </tr>
+                ) : (
+                  requests.map((request) => {
+                    const { date, time } = formatDate(request.createdAt);
+                    return (
+                      <tr key={request.id}>
+                        <td>
+                          <div className="flex items-center gap-3">
+                            <div className="avatar placeholder">
+                              <div className="bg-neutral text-neutral-content w-9 rounded-full">
+                                <span>
+                                  {request.resident.firstName[0]}
+                                  {request.resident.lastName[0]}
+                                </span>
+                              </div>
+                            </div>
+                            <div>
+                              <div className="font-semibold">
+                                {request.resident.firstName}{" "}
+                                {request.resident.lastName}
+                              </div>
+                              <div className="text-xs opacity-60">
+                                {request.resident.address}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
 
-                  <td>
-                    <span className="badge badge-info badge-outline">
-                      Barangay Clearance
-                    </span>
-                  </td>
+                        <td>{getTypeBadge(request.type)}</td>
 
-                  <td>
-                    <div className="text-sm">Oct 24, 2023</div>
-                    <div className="text-xs opacity-60">09:45 AM</div>
-                  </td>
+                        <td>
+                          <div className="text-sm">{date}</div>
+                          <div className="text-xs opacity-60">{time}</div>
+                        </td>
 
-                  <td>
-                    <span className="badge badge-error">Urgent</span>
-                  </td>
+                        <td>{getUrgencyBadge(request.urgency)}</td>
 
-                  <td>
-                    <div className="flex gap-2">
-                      <button className="btn btn-primary btn-xs">
-                        Approve
-                      </button>
-                      <button className="btn btn-ghost btn-xs text-error">
-                        Reject
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                        <td>{getStatusBadge(request.status)}</td>
 
-                {/* ROW 2 */}
-                <tr>
-                  <td>
-                    <div className="font-semibold">Liza Soberano</div>
-                  </td>
-                  <td>
-                    <span className="badge badge-secondary">
-                      Certificate of Indigency
-                    </span>
-                  </td>
-                  <td>Oct 24, 2023</td>
-                  <td>
-                    <span className="badge">Normal</span>
-                  </td>
-                  <td>
-                    <button className="btn btn-primary btn-xs">Approve</button>
-                  </td>
-                </tr>
+                        <td>
+                          {request.status === "PENDING" ? (
+                            <div className="flex gap-2">
+                              <button
+                                className="btn btn-success btn-xs"
+                                onClick={() =>
+                                  handleStatusUpdate(request.id, "APPROVED")
+                                }
+                                disabled={updateStatusMutation.isPending}
+                              >
+                                <Check size={14} />
+                                Approve
+                              </button>
+                              <button
+                                className="btn btn-error btn-xs"
+                                onClick={() =>
+                                  handleStatusUpdate(request.id, "REJECTED")
+                                }
+                                disabled={updateStatusMutation.isPending}
+                              >
+                                <X size={14} />
+                                Reject
+                              </button>
+                            </div>
+                          ) : (
+                            getStatusBadge(request.status)
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
 
           {/* PAGINATION */}
-          <div className="p-6 border-t flex justify-between items-center">
-            <p className="text-sm opacity-60">Showing 1 to 4 of 24 entries</p>
+          {pagination.totalPages > 1 && (
+            <div className="p-6 border-t flex justify-between items-center">
+              <p className="text-sm opacity-60">
+                Showing {(currentPage - 1) * limit + 1} to{" "}
+                {Math.min(currentPage * limit, pagination.total)} of{" "}
+                {pagination.total} entries
+              </p>
 
-            <div className="join">
-              <button className="join-item btn btn-sm">«</button>
-              <button className="join-item btn btn-sm btn-active">1</button>
-              <button className="join-item btn btn-sm">2</button>
-              <button className="join-item btn btn-sm">3</button>
-              <button className="join-item btn btn-sm">»</button>
+              <div className="join">
+                <button
+                  className="join-item btn btn-sm"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                >
+                  «
+                </button>
+                {Array.from(
+                  { length: pagination.totalPages },
+                  (_, i) => i + 1,
+                ).map((page) => (
+                  <button
+                    key={page}
+                    className={`join-item btn btn-sm ${page === currentPage ? "btn-active" : ""}`}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  className="join-item btn btn-sm"
+                  disabled={currentPage === pagination.totalPages}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                >
+                  »
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
-
-      {/* MODAL */}
-      <dialog id="confirm_modal" className="modal">
-        <div className="modal-box text-center space-y-4">
-          <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto">
-            <span className="material-icons">help_outline</span>
-          </div>
-
-          <h3 className="font-bold text-lg">Approve Request?</h3>
-
-          <p className="text-sm opacity-70">
-            This will generate the document and notify the resident.
-          </p>
-
-          <div className="modal-action justify-center">
-            <button className="btn">Cancel</button>
-            <button className="btn btn-primary">Confirm</button>
-          </div>
-        </div>
-      </dialog>
     </main>
   );
 };
