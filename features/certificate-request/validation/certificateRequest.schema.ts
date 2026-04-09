@@ -8,6 +8,8 @@ export const certificateRequestSchema = z.object({
   ]),
   purpose: z.string().nonempty("Purpose is required"),
   contactNumber: z.string().optional(),
+  urgency: z.enum(["NORMAL", "URGENT"]).optional().default("NORMAL"),
+  remarks: z.string().optional(),
 });
 
 export type CertificateRequestFormData = z.infer<typeof certificateRequestSchema>;

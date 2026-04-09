@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/db";
-import { CertificateType } from "@/app/generated/prisma/client";
+import { CertificateType, Urgency } from "@/app/generated/prisma/client";
 
 interface CertificateRequestData {
   userId: number;
   certificateType: string;
   purpose: string;
   contactNumber?: string;
+  urgency?: Urgency;
+  remarks?: string;
 }
 
 const formatCertificateType = (value: string): CertificateType => {
@@ -16,7 +18,7 @@ const formatCertificateType = (value: string): CertificateType => {
 };
 
 export const createCertificateRequestService = async (data: CertificateRequestData) => {
-  const { userId, certificateType, purpose, contactNumber } = data;
+  const { userId, certificateType, purpose, contactNumber, urgency, remarks } = data;
 
   if (!certificateType || !purpose) {
     throw new Error("Certificate type and purpose are required");
@@ -28,6 +30,8 @@ export const createCertificateRequestService = async (data: CertificateRequestDa
       certificateType: formatCertificateType(certificateType),
       purpose,
       contactNumber,
+      urgency,
+      remarks,
     },
     include: {
       resident: true,
