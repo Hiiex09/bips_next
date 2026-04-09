@@ -1,19 +1,11 @@
 "use server";
 
-import jwt from "jsonwebtoken";
-import { cookies } from "next/headers";
+import { verifyAuth } from "@/lib/serverAuth";
 import { getCertificateRequestsService } from "../services/getCertificateRequests.service";
 
 export const getCertificateRequestsAction = async (params: any = {}) => {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("access_token")?.value;
-    
-    if (!token) {
-      return { success: false, error: "Unauthorized: No token provided" };
-    }
-
-    jwt.verify(token, process.env.NEXT_JWT_SECRET_ACCESS_TOKEN!);
+    await verifyAuth();
 
     const result = await getCertificateRequestsService(params);
 

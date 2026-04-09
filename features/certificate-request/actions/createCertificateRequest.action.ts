@@ -1,24 +1,14 @@
 "use server";
 
-import jwt from "jsonwebtoken";
-import { headers } from "next/headers";
+import { verifyAuth } from "@/lib/serverAuth";
 import { createCertificateRequestService } from "../services/createCertificateRequest.service";
 import { certificateRequestSchema } from "../validation/certificateRequest.schema";
 
 export const createCertificateRequestAction = async (data: any) => {
   try {
-    const authHeader = (await headers()).get("authorization");
-    if (!authHeader) {
-      return { success: false, error: "Unauthorized: No token provided" };
-    }
-
-    const token = authHeader.split(" ")[1];
-    const decoded: any = jwt.verify(
-      token,
-      process.env.NEXT_JWT_SECRET_ACCESS_TOKEN!
-    );
-
+    const decoded = await verifyAuth();
     const userId = decoded.id || decoded.user_id;
+
     if (!userId) {
       return { success: false, error: "Invalid token: missing user id" };
     }

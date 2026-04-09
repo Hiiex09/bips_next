@@ -1,22 +1,21 @@
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
+import { verifyAuth } from "@/lib/serverAuth";
 
 const JWT_SECRET_ACCESS_TOKEN = process.env.NEXT_JWT_SECRET_ACCESS_TOKEN as string;
 
 export async function GET(req: NextRequest) {
     try {
-        const accessToken = req.cookies.get("access_token")?.value;
-
-        if (!accessToken) {
+        let decoded: any;
+        try {
+            decoded = await verifyAuth();
+        } catch (authError: any) {
             return NextResponse.json(
-                { message: "Unauthorized - No token provided", authenticated: false },
+                { message: authError.message, authenticated: false },
                 { status: 401 }
             );
         }
-
-        // Verify access token
-        const decoded: any = jwt.verify(accessToken, JWT_SECRET_ACCESS_TOKEN);
 
         // Find user in database
         const user = await prisma.user.findUnique({
