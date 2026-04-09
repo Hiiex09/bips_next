@@ -1,3 +1,5 @@
+import CreateAnnouncement from "@/components/CreateAnnouncement";
+
 const AnnouncementPage = () => {
   return (
     <>
@@ -16,11 +18,7 @@ const AnnouncementPage = () => {
               <span className="material-icons">notifications</span>
               <span className="absolute top-2 right-2 w-2 h-2 bg-error rounded-full"></span>
             </button>
-
-            <label htmlFor="create-modal" className="btn btn-primary btn-sm">
-              <span className="material-icons text-sm">add</span>
-              Create Announcement
-            </label>
+            <CreateAnnouncement />
           </div>
         </header>
 
@@ -154,31 +152,6 @@ const AnnouncementPage = () => {
         </div>
       </main>
 
-      {/* MODAL */}
-      <input type="checkbox" id="create-modal" className="modal-toggle" />
-
-      <div className="modal">
-        <div className="modal-box max-w-3xl">
-          <h3 className="font-bold text-lg mb-4">New Announcement</h3>
-
-          <input
-            className="input input-bordered w-full mb-4"
-            placeholder="Title"
-          />
-
-          <textarea
-            className="textarea textarea-bordered w-full"
-            placeholder="Content..."
-          ></textarea>
-
-          <div className="modal-action">
-            <label htmlFor="create-modal" className="btn">
-              Cancel
-            </label>
-            <button className="btn btn-primary">Publish</button>
-          </div>
-        </div>
-      </div>
     </>
   );
 };
