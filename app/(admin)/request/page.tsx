@@ -19,7 +19,7 @@ const RequestPage = () => {
     dateTo: "",
   });
 
-  const limit = 10;
+  const limit = 5;
 
   const params = useMemo(() => {
     const baseParams: any = {
@@ -116,6 +116,7 @@ const RequestPage = () => {
     { id: "approved", label: "Approved" },
     { id: "rejected", label: "Rejected" },
     { id: "urgent", label: "Urgent", count: statsData?.urgentRequests || 0 },
+    { id: "transactions", label: "Transactions" },
   ];
 
   return (
@@ -275,7 +276,7 @@ const RequestPage = () => {
                   <th>Date</th>
                   <th>Urgency</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th>{activeTab === "transactions" ? "Transactions" : "Actions"}</th>
                 </tr>
               </thead>
 
@@ -326,12 +327,44 @@ const RequestPage = () => {
                           <div className="text-xs opacity-60">{time}</div>
                         </td>
 
-                        <td>{getUrgencyBadge(request.urgency)}</td>
+                        <td>
+                          <div className="flex flex-col items-start gap-1">
+                            {getUrgencyBadge(request.urgency)}
+                            {request.purpose && (
+                              <div className="text-xs mt-1 max-w-[200px]">
+                                <span className="font-medium opacity-60">Purpose: </span>
+                                <span className="opacity-80">{request.purpose}</span>
+                              </div>
+                            )}
+                            {request.remarks && (
+                              <div className="text-xs max-w-[200px]">
+                                <span className="font-medium text-error opacity-80">Remarks: </span>
+                                <span className="opacity-80">{request.remarks}</span>
+                              </div>
+                            )}
+                          </div>
+                        </td>
 
                         <td>{getStatusBadge(request.status)}</td>
 
                         <td>
-                          {request.status === "PENDING" ? (
+                          {activeTab === "transactions" ? (
+                            request.processedByName ? (
+                              <div className="flex flex-col gap-1">
+                                <span className="text-sm font-medium">
+                                  {request.processedByName}
+                                </span>
+                                {(request.dateApproved || request.updatedAt) && (
+                                  <span className="text-xs opacity-60">
+                                    {formatDate(request.dateApproved || request.updatedAt).date}{" "}
+                                    {formatDate(request.dateApproved || request.updatedAt).time}
+                                  </span>
+                                )}
+                              </div>
+                            ) : (
+                              <span className="text-xs opacity-50 italic">System</span>
+                            )
+                          ) : request.status === "PENDING" ? (
                             <div className="flex gap-2">
                               <button
                                 className="btn btn-success btn-xs"

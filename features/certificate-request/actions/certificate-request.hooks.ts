@@ -6,6 +6,10 @@ interface CertificateRequest {
     type: string;
     status: string;
     urgency: string;
+    purpose?: string;
+    remarks?: string;
+    dateApproved?: string;
+    processedByName?: string | null;
     createdAt: string;
     updatedAt: string;
     resident: {

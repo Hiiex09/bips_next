@@ -14,7 +14,9 @@ export const getCertificateRequestsService = async (params: any = {}) => {
 
   const where: any = {};
 
-  if (status && status !== "all") {
+  if (status === "transactions") {
+    where.status = { not: "PENDING" };
+  } else if (status && status !== "all") {
     where.status = status.toUpperCase();
   }
 
