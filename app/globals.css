@@ -1,6 +1,40 @@
 @import "tailwindcss";
 @plugin "daisyui";
 
+/* ── Portal Dark Theme (Resident + Public dark pages) ── */
+@plugin "daisyui/theme" {
+  name: "portal-dark";
+  default: false;
+  prefersdark: false;
+  color-scheme: dark;
+
+  --color-base-100: oklch(12% 0.03 265);
+  --color-base-200: oklch(17% 0.04 265);
+  --color-base-300: oklch(22% 0.06 265);
+  --color-base-content: oklch(93% 0.02 265);
+  --color-primary: oklch(57% 0.25 270);
+  --color-primary-content: oklch(100% 0 0);
+  --color-secondary: oklch(58% 0.27 335);
+  --color-secondary-content: oklch(100% 0 0);
+  --color-accent: oklch(70% 0.20 300);
+  --color-accent-content: oklch(20% 0.05 300);
+  --color-neutral: oklch(25% 0.05 265);
+  --color-neutral-content: oklch(92% 0.02 265);
+  --color-info: oklch(65% 0.20 232);
+  --color-info-content: oklch(100% 0 0);
+  --color-success: oklch(65% 0.22 152);
+  --color-success-content: oklch(100% 0 0);
+  --color-warning: oklch(78% 0.19 80);
+  --color-warning-content: oklch(20% 0.05 80);
+  --color-error: oklch(60% 0.25 25);
+  --color-error-content: oklch(100% 0 0);
+
+  --radius-selector: 0.5rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.75rem;
+  --border: 1px;
+}
+
 @theme {
   /* DaisyUI Core Colors Mapped to Material Palette */
   --color-primary: #002576;

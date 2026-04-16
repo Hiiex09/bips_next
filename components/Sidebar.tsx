@@ -138,7 +138,7 @@ const Sidebar = () => {
             <Link href={"/incident"}>Incident Reports</Link>
           </li>
           <li>
-            <Link href={"/announcements"}>Announcements</Link>
+            <Link href={"/admin-announcements"}>Announcements</Link>
           </li>
           <div className="divider"></div>
           <li>
